@@ -6,13 +6,18 @@ import os
 from lemmatize import lemmatize
 
 app = Flask(__name__, static_folder = './static')
-User_Data = {}
 
 def load_json(file_path):
     assert file_path.split('.')[-1] == 'json'
     with open(file_path,'r') as file:
         data = json.load(file)
     return data
+
+def save_json(save_path,data):
+    assert save_path.split('.')[-1] == 'json'
+    with open(save_path, 'w', encoding='utf-8') as file:
+        json.dump(data, file)
+    file.close()
 
 all_stories = load_json('./preprocess/all_stories.json')
 all_titles = load_json('./preprocess/all_titles.json')
@@ -35,7 +40,8 @@ def get_paragraph():
         username = str(request.args.get('username'))
         print(story_title, para_id)
         ###########!!!!!!!!##########
-        if (User_Data[username]['labeled_flag'] == 1):
+        u_dict = load_json('./user_data/' + username + '.json')
+        if (u_dict['labeled_flag'] == 1):
             if story_title in all_titles:
                 all_stories[story_title][int(para_id)-1]["label_time"] += 1
             #check if the story is completely labeled
@@ -43,9 +49,10 @@ def get_paragraph():
                     all_section_counter.remove(str(story_id) + '_' + str(para_id))
         
         #pick a new paragraph
-        User_Data[username]['para_dict'] = pick_a_paragraph()
-        User_Data[username]['labeled_flag'] = 0
-        return json.dumps(User_Data[username]['para_dict'])
+        u_dict['para_dict'] = pick_a_paragraph()
+        u_dict['labeled_flag'] = 0
+        save_json('./user_data/' + username + '.json', u_dict)
+        return json.dumps(u_dict['para_dict'])
 
 @app.route('/')
 def load():
@@ -56,11 +63,13 @@ def search_form():
     if request.method == 'GET':
         word = request.args.get('word')
         username = str(request.args.get('username'))
-        User_Data[username]['word'] = word.replace('"','').lower()
+        u_dict = load_json('./user_data/' + username + '.json')
+        u_dict['word'] = word.replace('"','').lower()
         #----lemmanization----#
-        User_Data[username]['word'] = lemmatize(User_Data[username]['word'])
-        User_Data[username]['retrieval'] = triples[User_Data[username]['word']]
-        return json.dumps(User_Data[username]['retrieval'])
+        u_dict['word'] = lemmatize(u_dict['word'])
+        u_dict['retrieval'] = triples[u_dict['word']]
+        save_json('./user_data/' + username + '.json', u_dict)
+        return json.dumps(u_dict['retrieval'])
 
 @app.route('/submit', methods=["GET"])
 def submit_qa():
@@ -73,7 +82,8 @@ def submit_qa():
         section = int(str(request.args.get('section')))
         username = str(request.args.get('username'))
         
-        retireved_triplets = User_Data[username]['retrieval']['triples']
+        u_dict = load_json('./user_data/' + username + '.json')
+        retireved_triplets = u_dict['retrieval']['triples']
         triple = retireved_triplets[concept]
         sub = triple[0]
         rel = triple[1]
@@ -92,19 +102,26 @@ def submit_qa():
             writer = csv.writer(f)
             r = [section, word_id, sub, rel, obj, question, answer]
             writer.writerow(r)
-        User_Data[username]['labeled_flag'] = 1
+        u_dict['labeled_flag'] = 1
+        save_json('./user_data/' + username + '.json', u_dict)
         return "done"
 
 @app.route('/init', methods=["GET"])
 def init():
     if request.method == 'GET':
         username = str(request.args.get('username'))
-        u_dict = {}
-        u_dict['labeled_flag'] = 0
-        u_dict['word'] = ''
-        u_dict['retrieval'] = {}
-        u_dict['para_dict'] = {}
-        User_Data[username] = u_dict
+        if not os.path.isdir('./user_data'):
+            os.makedirs("./user_data")
+        if not os.path.isfile('./user_data/' + username + '.json'):
+            f = open('./user_data/' + username + '.json', 'w', encoding='utf8')
+            f.close()
+        with open('./user_data/' + username + '.json', 'w', encoding='utf8') as f:
+            u_dict = {}
+            u_dict['labeled_flag'] = 0
+            u_dict['word'] = ''
+            u_dict['retrieval'] = {}
+            u_dict['para_dict'] = {}
+            save_json('./user_data/' + username + '.json', u_dict)
         return "done"
 
 if __name__ == '__main__':     
