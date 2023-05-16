@@ -27,8 +27,8 @@ body{
 
 #LoginBox{
     position: fixed;
-    width: 20vw;
-    height: 10vw;
+    width: 22vw;
+    height: 12vw;
     margin-top: 3vw;
     /*margin-left: 40vw;*/
     text-align: center;
@@ -53,7 +53,7 @@ body{
 }
 
 .login-item{
-    width: 20vw;
+    width: 22vw;
     height: 3.5vw;
     padding-top: 10px;
     margin: 0;
