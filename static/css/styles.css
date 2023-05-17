@@ -204,12 +204,36 @@ i::before {
     margin-top: 50px;
     color: #000;
     font-family: emoji;
+}
+
+#SelectWordInst p{
+    padding: 0;
+    margin: 0;
+    margin-left: 25vw;
     font-size: 40px;
+    width: 40vw;
 }
 
 #SelectWordInst p1{
     background-color: #DCDCDC;
     padding: 0;
+    font-size: 40px;
+    width: 40vw;
+}
+
+#SelectWordInst p2{
+    font-weight: bold;
+    padding: 0;
+    font-size: 40px;
+    width: 40vw;
+}
+
+#SelectWordInst p3{
+    margin-top: 10vw;
+    font-size: 22px;
+    line-height: 30px;
+    font-family: Times, "Times New Roman", Georgia, serif;
+    background-color: #f6feff;
 }
 
 #AnnotationSpace{
@@ -294,23 +318,35 @@ i::before {
 #SelectTripleInst{
     float: left;
     width: 45vw;
-    text-align: center;
     margin-top: 50px;
     color: #000;
     font-family: emoji;
-    font-size: 40px;
+    padding: 30px;
+}
+
+#SelectTripleInst p{
+    text-align: center;
+    font-size: 37px;
+    padding: 0;
+    margin-bottom: 20px;
 }
 
 #SelectTripleInst p1{
     background-color: #ffb800;
+    font-size: 37px;
     padding: 0;
+}
+
+#SelectTripleInst p2{
+    font-size: 28px;
+    padding-left: 30px;
 }
 
 table{
     padding: 20px;
     text-align: center;
     width: 45vw;
-    color: rgb(0, 0, 0);
+    /*color: rgb(0, 0, 0);*/
     font-family: emoji;
     font-size: 20px;
     box-shadow: 0px 10px 10px rgba(0,0,0,0.1);
@@ -325,22 +361,44 @@ table tr:first-child{
     background: #ffffff;
 }
 
-.table_content{
-    color: rgb(0, 0, 0);
+table .table_content{
+    /*color: rgb(0, 0, 0);*/
     font-family: emoji;
     font-size: 20px;
     padding-bottom: 10px;
 }
 
+table .table_rel{
+    color: #ffb800;
+    font-family: emoji;
+    font-size: 20px;
+    padding-bottom: 10px;
+    width: 200px;
+}
+
+table .table_relcon{
+    color: #6db25c;
+    font-family: emoji;
+    font-size: 20px;
+    padding-bottom: 10px;
+    width: 200px;
+}
+
 #CreateQAInst{
     float: left;
-    width: 45vw;
-    text-align: center;
-    margin-top: 50px;
+    width: 47vw;
+    /*margin-top: 20px;*/
     margin-left: 30px;
     color: #000;
     font-family: emoji;
     font-size: 30px;
+    display: flex;
+    flex-direction: column;
+}
+
+#CreateQAInst p{
+    text-align: center;
+    padding: 0;
 }
 
 #CreateQAInst p1{
@@ -354,19 +412,13 @@ table tr:first-child{
 }
 
 #CreateQAInst p3{
-    color:#0081f9;
-    padding: 0;
-}
-
-#CreateQAInst p3{
     color: white;
     background-color:#0081f9;
     padding: 0;
 }
 
 #CreateQAInst p4{
-    color: white;
-    background-color:#ffb800;
+    color: #6db25c;
     padding: 0;
 }
 
@@ -374,6 +426,13 @@ table tr:first-child{
     color:#ffb800;
     padding: 0;
 }
+
+#CreateQAInst p6{
+    font-size: 23px;
+    padding: 0;
+    padding-left: 20px;
+}
+
 
 #QA{
     float: left;

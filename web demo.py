@@ -22,14 +22,14 @@ def save_json(save_path,data):
 all_stories = load_json('./preprocess/all_stories.json')
 all_titles = load_json('./preprocess/all_titles.json')
 all_section_counter = load_json('./preprocess/all_section_counter.json')
-triples = load_json('./preprocess/triples.json')
+triples = load_json('./preprocess/triples_1.json')
 
 def pick_a_paragraph():
     rand_section = random.choice(all_section_counter)
     story_id = int(rand_section.split('_')[0])
     section_id = int(rand_section.split('_')[1])
     title = all_titles[story_id]
-    return load_json('./preprocess/data/' + title + '.json')[str(section_id)]
+    return load_json('./preprocess/data_updated/' + title + '.json')[str(section_id)]
 
 @app.route('/new_paragraph', methods=["GET"])
 def get_paragraph():
@@ -64,9 +64,11 @@ def search_form():
         word = request.args.get('word')
         username = str(request.args.get('username'))
         u_dict = load_json('./user_data/' + username + '.json')
-        u_dict['word'] = word.replace('"','').lower()
+        u_dict['word'] = word.replace('"','').replace("'",'').replace('.','').replace(',','').lower()
+        print("before:", u_dict['word'])
         #----lemmanization----#
         u_dict['word'] = lemmatize(u_dict['word'])
+        print("after:", u_dict['word'])
         u_dict['retrieval'] = triples[u_dict['word']]
         save_json('./user_data/' + username + '.json', u_dict)
         return json.dumps(u_dict['retrieval'])

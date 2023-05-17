@@ -138,12 +138,17 @@ function render_original() {
         init_line = 1;
     }
     SelectWordInst.style.display = "block";
-    SelectWordInst.innerHTML = "Select a <p1>word</p1> to start."
+    //SelectWordInst.innerHTML = "Select a <p1>word</p1> to start."
+    SelectWordInst.innerHTML = "<p>Start by selecting a <p1>word</p1> that you think is BENEFICIAL for <p2>children's education</p2>.</p>"
+    SelectWordInst.innerHTML += "<br><br><br><p3>*This annotation task is to create QA pairs beneficial for children's education, with the help of external knowledge from ConceptNet.</p3>"
 }
 
 function update_select(d, c) {
     if(init_submit == 1){
         init_state = 0;
+    }
+    if(data[Number(d)]['marked'] == 1){
+        return;
     }
     let selected = document.getElementById("s" + d);
     selected.style.background = "#ffa5a5";
@@ -198,7 +203,11 @@ function show_qa() {
     pair.style.display = "block";
     submit.style.display = "block";
     CreateQAInst.style.display = "block";
-    CreateQAInst.innerHTML = `Now you need to create a Question and Answer for the story based on <p1>the word</p1> <p2>"${marked_word}"</p2> and its <p3>Meaning in Wiktionary</p3> and <p4>the ConceptNet Triple</p4> <p5>you choose</p5>.`
+    //CreateQAInst.innerHTML = `Now you need to create a Question and Answer for the story based on <p1>the word</p1> <p2>"${marked_word}"</p2> and its <p3>Meaning in Wiktionary</p3> and <p4>the ConceptNet Triple</p4> <p5>you choose</p5>.`
+    CreateQAInst.innerHTML = `<p>Now you need to create a Question and Answer for the story based on <p1>the word</p1> <p2>"${marked_word}"</p2>.</p> 
+    <p6>· You can use its <p3>meaning in Wiktionary</p3>.</p6><br>
+    <p6>· Preferrably including <p2>"${marked_word}"</p2> and its <p5>relationship</p5> in the question that can be answered by the <p4>related concept</p4>.</p6><br>
+    <p6>· The QA-pair should be beneficial for children's education.</p6>`
     document.getElementById("question").value = "";
     document.getElementById("answer").value = "";
     var qa_div = document.getElementById("QA");
@@ -220,7 +229,17 @@ function write_meaning(data, word) {
     concept_space.style.display = "block";
     SelectTripleInst.style.display = "block";
     res = JSON.parse(data);
-    meaning = res["meaning"]
+    meaning = res["meaning"].substring(word.length + 1).split(";");
+    tab_space = "&nbsp;&nbsp;&nbsp;&nbsp;";
+    meaning_str = word + ": <br>" + tab_space;
+    
+    for(let i = 0; i < meaning.length; i++){
+        if(i != 0){
+            meaning_str += ';<br>' + tab_space;
+        }
+        meaning_str += meaning[i];
+    }
+
     knowledge_list = res["triples"];
     console.log(typeof(knowledge_list), knowledge_list);
     if(typeof(meaning) == "undefined" || meaning == '' || knowledge_list.length == 0){
@@ -233,7 +252,7 @@ function write_meaning(data, word) {
     }
     NoKnowledge.style.display = "none";
     var t_string = '<table onclick="show_qa()">';
-    t_string += '<tr><td class="table_content" width="100px">Word</td><td class="table_content" width="200px">Relationship</td><td class="table_content" width="200px">Related concept</td></tr>';
+    t_string += '<tr><td class="table_content" width="100px">Word</td><td class="table_rel">Relationship</td><td class="table_relcon">Related concept</td></tr>';
     console.log(knowledge_list.length);
     for (let i = 0; i < knowledge_list.length; i++) {
         entity = knowledge_list[i];
@@ -253,10 +272,11 @@ function write_meaning(data, word) {
     t_string += '</table>'
     
     AboveMeaning.innerHTML = "<p id='MeaningIns'>Meaning of '" + word + "' in Wiktionary:</p>";
-    ShowMeaning.innerHTML = meaning;
+    ShowMeaning.innerHTML = meaning_str;
     AboveTriples.innerHTML = "<p id='TripleIns'>Matching triples of '" + word + "' in ConceptNet:</p>";
     ShowTriples.innerHTML = t_string;
-    SelectTripleInst.innerHTML = `Please choose<br>a <p1>triple of "${marked_word}" in ConceptNet</p1><br>from the left box.`
+    //SelectTripleInst.innerHTML = `Please choose<br>a <p1>triple of "${marked_word}" in ConceptNet</p1><br>from the left box.`
+    SelectTripleInst.innerHTML = `<p>Please choose<br>a <p1>triple of "${marked_word}" in ConceptNet</p1> that:</p><br><p2>1. provides external knowledge outside the story</p2><br><p2>2. is beneficial for children's education.</p2>`
     /*!!!!new QA display!!!*/
     //document.getElementById("pair").style.display = "block";
     //document.getElementById("submit").style.display = "block";
