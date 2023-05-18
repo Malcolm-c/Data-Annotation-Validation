@@ -22,14 +22,14 @@ def save_json(save_path,data):
 all_stories = load_json('./preprocess/all_stories.json')
 all_titles = load_json('./preprocess/all_titles.json')
 all_section_counter = load_json('./preprocess/all_section_counter.json')
-triples = load_json('./preprocess/triples_1.json')
+triples = load_json('./preprocess/triples.json')
 
 def pick_a_paragraph():
     rand_section = random.choice(all_section_counter)
     story_id = int(rand_section.split('_')[0])
     section_id = int(rand_section.split('_')[1])
     title = all_titles[story_id]
-    return load_json('./preprocess/data_updated/' + title + '.json')[str(section_id)]
+    return load_json('./preprocess/data/' + title + '.json')[str(section_id)]
 
 @app.route('/new_paragraph', methods=["GET"])
 def get_paragraph():
