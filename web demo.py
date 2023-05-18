@@ -99,6 +99,9 @@ def submit_qa():
             os.makedirs('./QA dataset/' + username)  
         if not os.path.isfile("./QA dataset/" + username + '/' + title + "-QAC_test.csv"):
             f =  open("./QA dataset/" + username + '/' + title + "-QAC_test.csv", 'w', encoding='utf8', newline='')
+            header = ['section_id', 'concept(sub)', 'relation', 'obj', 'question', 'answer']
+            writer = csv.writer(f)
+            writer.writerow(header)
             f.close()
         with open("./QA dataset/" + username + '/' + title + "-QAC_test.csv", 'w', encoding='utf8', newline='') as f:
             writer = csv.writer(f)
