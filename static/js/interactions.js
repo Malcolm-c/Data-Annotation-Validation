@@ -229,9 +229,9 @@ function write_meaning(data, word) {
     concept_space.style.display = "block";
     SelectTripleInst.style.display = "block";
     res = JSON.parse(data);
-    meaning = res["meaning"].substring(word.length + 1).split(";");
+    meaning = res["meaning"].substring(res["triples"][0][0].length + 1).split(";");
     tab_space = "&nbsp;&nbsp;&nbsp;&nbsp;";
-    meaning_str = word + ": <br>" + tab_space;
+    meaning_str = res["triples"][0][0] + ": <br>" + tab_space;
     
     for(let i = 0; i < meaning.length; i++){
         if(i != 0){
