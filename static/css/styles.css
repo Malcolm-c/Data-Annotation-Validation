@@ -195,7 +195,7 @@ i::before {
 }
 
 .selecting > .fa-times {
-    color: indianred;
+    color: #cd5c5c;
 }
 
 #SelectWordInst{
@@ -342,6 +342,12 @@ i::before {
     padding-left: 30px;
 }
 
+#SelectTripleInst p3{
+    background-color: #FFA5A5;
+    font-size: 37px;
+    padding: 0;
+}
+
 table{
     padding: 20px;
     text-align: center;
@@ -436,7 +442,7 @@ table .table_relcon{
 
 #QA{
     float: left;
-    margin-top: 50px;
+    margin-top: 10px;
     margin-left: 30px;
     align-items: center;
     width: 45vw;
@@ -505,7 +511,8 @@ table .table_relcon{
     font-family: emoji;
     letter-spacing: 1px;
     font-size: 25px;
-    margin-top: 30px;
+    margin-top: 20px;
+    margin-bottom: 20px;
     cursor: pointer;
     -webkit-transition-duration: 0.4s; 
     transition-duration: 0.4s;

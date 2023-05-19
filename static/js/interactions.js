@@ -252,18 +252,18 @@ function write_meaning(data, word) {
     }
     NoKnowledge.style.display = "none";
     var t_string = '<table onclick="show_qa()">';
-    t_string += '<tr><td class="table_content" width="100px">Word</td><td class="table_rel">Relationship</td><td class="table_relcon">Related concept</td></tr>';
+    t_string += '<tr><td class="table_content" width="30px"></td><td class="table_content" width="100px">Concept</td><td class="table_rel">Relationship</td><td class="table_relcon">Related concept</td></tr>';
     console.log(knowledge_list.length);
     for (let i = 0; i < knowledge_list.length; i++) {
         entity = knowledge_list[i];
         var text = "";
-        t_string += `<tr id="tr_${i}" onclick="get_row('tr_${i}')">`;
+        t_string += `<tr id="tr_${i}" onclick="get_row('tr_${i}')"><td width="30px"><input type="radio" id="radio_${i}" name="TripleSelected" value="tr_${i}"></td>`;
         for (let j = 0; j < entity.length-1; j++) {
             if(j != 0){
-                t_string += '<td width="300px">' + entity[j] + '</td>'
+                t_string += '<td width="300px">' + entity[j].replaceAll("_", " ") + '</td>'
             }
             else{
-                t_string += '<td width="100px">' + entity[j] + '</td>'
+                t_string += '<td width="100px"><p1 style="background-color: #FFA5A5">' + entity[j] + '</p1></td>'
             }
             text += entity[j].toString() + ' ';
         }
@@ -276,7 +276,7 @@ function write_meaning(data, word) {
     AboveTriples.innerHTML = "<p id='TripleIns'>Matching triples of '" + word + "' in ConceptNet:</p>";
     ShowTriples.innerHTML = t_string;
     //SelectTripleInst.innerHTML = `Please choose<br>a <p1>triple of "${marked_word}" in ConceptNet</p1><br>from the left box.`
-    SelectTripleInst.innerHTML = `<p>Please choose<br>a <p1>triple of "${marked_word}" in ConceptNet</p1> that:</p><br><p2>1. provides external knowledge outside the story</p2><br><p2>2. is beneficial for children's education.</p2>`
+    SelectTripleInst.innerHTML = `<p>Please choose<br>a <p1>triple of <p3>"${marked_word}"</p3> in ConceptNet</p1> that:</p><br><p2>1. provides external knowledge outside the story</p2><br><p2>2. is beneficial for children's education.</p2>`
     /*!!!!new QA display!!!*/
     //document.getElementById("pair").style.display = "block";
     //document.getElementById("submit").style.display = "block";
@@ -284,6 +284,7 @@ function write_meaning(data, word) {
 }
 
 function get_row(row_id){
+    document.getElementById('radio' + row_id.substring(2)).checked = true;
     document.getElementById(row_id).style.backgroundColor = "#FFE49D";
     if (prev_marked_concept != ""){
         document.getElementById(prev_marked_concept).style.backgroundColor = "white";
