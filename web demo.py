@@ -23,13 +23,19 @@ all_stories = load_json('./preprocess/all_stories.json')
 all_titles = load_json('./preprocess/all_titles.json')
 all_section_counter = load_json('./preprocess/all_section_counter.json')
 triples = load_json('./preprocess/triples.json')
+anntation_history = load_json('./preprocess/annotation_history.json')
 
-def pick_a_paragraph():
-    rand_section = random.choice(all_section_counter)
-    story_id = int(rand_section.split('_')[0])
-    section_id = int(rand_section.split('_')[1])
-    title = all_titles[story_id]
-    return load_json('./preprocess/data/' + title + '.json')[str(section_id)]
+def pick_a_paragraph(section_id):
+    #pick a random paragraph from sections that haven't been annotated yet
+    remain_sections = list(set(all_section_counter)-set(section_id))
+    if remain_sections == []:
+        return 0
+    else:
+        rand_section = random.choice(remain_sections)
+        story_id = int(rand_section.split('_')[0])
+        section_id = int(rand_section.split('_')[1])
+        title = all_titles[story_id]
+        return load_json('./preprocess/data_updated/' + title + '.json')[str(section_id)]
 
 @app.route('/new_paragraph', methods=["GET"])
 def get_paragraph():
@@ -44,15 +50,24 @@ def get_paragraph():
         if (u_dict['labeled_flag'] == 1):
             if story_title in all_titles:
                 all_stories[story_title][int(para_id)-1]["label_time"] += 1
-            #check if the story is completely labeled
-                if all_stories[story_title][int(para_id)-1]["label_time"] > 2:
+                anntation_history[story_title][int(para_id)-1]["label_time"] += 1
+                if anntation_history[story_title][int(para_id)-1]["label_time"] == 1:
+                    anntation_history[story_title][int(para_id)-1]["user1"] = username
+                elif anntation_history[story_title][int(para_id)-1]["label_time"] == 2:
+                    anntation_history[story_title][int(para_id)-1]["user2"] = username
                     all_section_counter.remove(str(story_id) + '_' + str(para_id))
-        
+                u_dict['section_id'].append(str(story_id) + '_' + str(para_id))
+                u_dict['section_num'] += 1
         #pick a new paragraph
-        u_dict['para_dict'] = pick_a_paragraph()
-        u_dict['labeled_flag'] = 0
-        save_json('./user_data/' + username + '.json', u_dict)
-        return json.dumps(u_dict['para_dict'])
+        new_para_res = pick_a_paragraph(u_dict['section_id'])
+        if new_para_res == 0:
+            return "No more New Paragraphs"
+        else:
+            u_dict['para_dict'] = new_para_res
+            u_dict['labeled_flag'] = 0
+            save_json('./user_data/' + username + '.json', u_dict)
+            save_json('./preprocess/annotation_history.json', anntation_history)
+            return json.dumps(u_dict['para_dict'])
 
 @app.route('/')
 def load():
@@ -126,6 +141,8 @@ def init():
             u_dict['word'] = ''
             u_dict['retrieval'] = {}
             u_dict['para_dict'] = {}
+            u_dict['section_id'] = []
+            u_dict['section_num'] = 0
             save_json('./user_data/' + username + '.json', u_dict)
         return "done"
 
