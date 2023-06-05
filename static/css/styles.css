@@ -236,6 +236,13 @@ i::before {
     background-color: #f6feff;
 }
 
+#SelectWordInst p4{
+    background-color: #a9a7ff;
+    padding: 0;
+    font-size: 40px;
+    width: 40vw;
+}
+
 #AnnotationSpace{
     width: 100%;
     /*height: 100%;*/
@@ -397,12 +404,13 @@ table .table_relcon{
     margin-left: 30px;
     color: #000;
     font-family: emoji;
-    font-size: 30px;
+    font-size: 27px;
     display: flex;
     flex-direction: column;
 }
 
 #CreateQAInst p{
+    font-size: 27px;
     text-align: center;
     padding: 0;
 }
@@ -437,6 +445,16 @@ table .table_relcon{
     font-size: 23px;
     padding: 0;
     padding-left: 20px;
+}
+
+#CreateQAInst p7{
+    color: #7653d8;
+    padding: 0;
+}
+
+#CreateQAInst p8{
+    background-color: #a9a7ff;
+    padding: 0;
 }
 
 

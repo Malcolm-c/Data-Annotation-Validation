@@ -50,17 +50,18 @@ def retrieval_triples(word):
 def preprocess_all_stories():
     for i, t in enumerate(all_titles):
         t_list = all_stories[t]
-        story_dict = {}
+        story_dict = load_json("./data/" + t +'.json')
         for t_dict in t_list:
             id = t_dict['id']
-            text = t_dict['text']
-            label_time = t_dict['label_time']
-            stop_words = filter_all_words(text)
-            p_text = tokenize_en(text)
-            p_words = preprocess_text(p_text, stop_words)
-            para_dict = {"title": t, "s_id": i, "id": id, "words": p_words}
-            story_dict[id] = para_dict
-        save_json(t +'.json', story_dict)
+            if(str(id) == "0"):
+                text = t_dict['text']
+                label_time = t_dict['label_time']
+                stop_words = filter_all_words(text)
+                p_text = tokenize_en(text)
+                p_words = preprocess_text(p_text, stop_words)
+                para_dict = {"title": t, "s_id": i, "id": id, "words": p_words}
+                story_dict[id] = para_dict
+        save_json("./data/" + t +'.json', story_dict)
 
 preprocess_all_stories()   
 save_json("triples.json", triples_dict)

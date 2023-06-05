@@ -11,13 +11,24 @@ var marked_word = "";
 var marked_concept = "";
 var prev_marked_concept = "";
 var img = '<img src="../static/images/arrow_icon.png" width="20px" height="20px" hspace = 5px/>';
-var label_num = [0];
 var word_list = [];
+var annotated_words = [];
+var knowledge_list = [];
+var selected_triple = [];
 var id = 0;
 var title = "";
 var s_id = "";
 var story_num = 0;
 var username = "";
+var sub_time = 0;
+var selected_index = 0;
+var triple_flag = 0;
+var q2 = "";    //first written qestion in validation
+var a2 = "";    //first written answer in validation
+var label_num = 0;   //number of annotated words
+var rank_num = 0;   //number of ranked triples
+var ranked_triple = []; //list of ranked top3 triples
+var ranked_triple_id = []   //list of ranked top3 triples' id
 
 function ShowLogin(){
     LoginBox.style.display = 'block';
@@ -77,24 +88,34 @@ function get_paragraph(){
         },
         dataType: "text",
         success: function (result) {
-            //alert("Refresh Successful！");
+            if(result == "Haven't finished!"){
+                alert(result);
+                return;
+            }
+            if (result == "No more New Paragraphs"){
+                alert("Annotation Finished！");
+                clear_content();
+                return;
+            }
             res = JSON.parse(result);
-            title = res["title"];
-            s_id = res["s_id"];
-            id = res["id"];
-            raw_data = res['words'];
+            text = res['text'];
+            annotated_words = res['annotated_words']
+            console.log(annotated_words);
+            title = text["title"];
+            s_id = text["s_id"];
+            id = text["id"];
+            raw_data = text['words'];
             switch_para = 1;
-            //StoryTitle.innerHTML = "This paragraph is taken from story: " + title.replaceAll('-', ' ') + "<br />"
             StoryTitle.innerHTML = title.replaceAll('-', ' ');
             marked_id = "";
             render_original();
+            highlight_word();
             clear_content();
             switch_para = 0;
             story_num += 1;
-            label_num[story_num] = 0;
             word_list[story_num] = "";
-            console.log("new paragraph added")
-            folder_section();
+            console.log("new paragraph added");
+            label_num = 0;
         }
     })
 }
@@ -102,30 +123,16 @@ function get_paragraph(){
 function render_original() {
     data = [];
     console.log(raw_data); 
-    /*raw_data.forEach(function (e, i) {
-        data.push({
-            id: i,
-            word: e,
-            marked: 0
-        })
-    })*/
     data = raw_data;
-    console.log(data); 
+    //console.log(data); 
     let paragraph = document.createElement("div");
     paragraph.className = "paragraph";
     paragraph.innerHTML = "";
     data.forEach(function (e) {
-        if(e.stop == 0){
-            paragraph.innerHTML += `
-                <div id="s${e.id}" class="sentence" onclick="update_select('${e.id}', 'pos')">
-                    ${e.word}</div>`
-        }
-        else{
-            paragraph.innerHTML += `
-                <div id="s${e.id}" class="sentence_no_choose" >
-                    ${e.word}
-                </div>`
-        }
+        paragraph.innerHTML += `
+            <div id="s${e.id}" class="sentence_no_choose">
+                ${e.word}
+            </div>`
     })
     console.log("new paragraph")
     if(text_space.childNodes.length==0){
@@ -138,12 +145,21 @@ function render_original() {
         init_line = 1;
     }
     SelectWordInst.style.display = "block";
-    //SelectWordInst.innerHTML = "Select a <p1>word</p1> to start."
-    SelectWordInst.innerHTML = "<p>Start by selecting a <p1>word</p1> that you think is BENEFICIAL for <p2>children's education</p2>.</p>"
+    SelectWordInst.innerHTML = "<p>Please click on the <p4>purple highlighted words</p4> <b>one by one</b> and select a triple for each of them.</p>"
     SelectWordInst.innerHTML += "<br><br><br><p3>*This annotation task is to create QA pairs beneficial for children's education, with the help of external knowledge from ConceptNet.</p3>"
 }
 
-function update_select(d, c) {
+function highlight_word(){
+    for(let i = 0; i < annotated_words.length; i++){
+        console.log(annotated_words[i].word_id);
+        document.getElementById(`s${annotated_words[i].word_id}`).className = "sentence";
+        document.getElementById(`s${annotated_words[i].word_id}`).setAttribute("onclick", `update_select(${i}, annotated_words[${i}].word_id, 'pos')`);
+        document.getElementById(`s${annotated_words[i].word_id}`).style.background = "#a9a7ff";
+    }
+}
+
+function update_select(i, d, c) {
+    selected_index = i;
     if(init_submit == 1){
         init_state = 0;
     }
@@ -152,7 +168,6 @@ function update_select(d, c) {
     }
     let selected = document.getElementById("s" + d);
     selected.style.background = "#ffa5a5";
-    //selected.style.width = "1px";
     if (c == 'pos') {
         console.log(marked_id, d);
         if(marked_id != ""){
@@ -161,7 +176,7 @@ function update_select(d, c) {
                 /*marked new word*/
                 if(marked_id != d){
                     /*Restore the original background color*/ 
-                    document.getElementById("s" + marked_id).style.background = "#DCDCDC";
+                    document.getElementById("s" + marked_id).style.background = "#a9a7ff";
                 }/*update new bg color*/
                 else{
                     selected.style.background = "#ffa5a5";
@@ -203,11 +218,35 @@ function show_qa() {
     pair.style.display = "block";
     submit.style.display = "block";
     CreateQAInst.style.display = "block";
+
+    var c = annotated_words[selected_index].concept;
+    var r = annotated_words[selected_index].relation;
+    var o = annotated_words[selected_index].obj;
+    console.log("!!!!!",c,r,o,knowledge_list);
+    for(i = 0; i < knowledge_list.length; i++){
+        entity = knowledge_list[i];
+        if (entity[0] != c){
+            continue;
+        }
+        if (entity[1] != r){
+            continue;
+        }
+        if (entity[2] == o){
+            selected_triple = entity;
+            break;
+        }
+    }
+    document.getElementById(`tr_${i}`).style.backgroundColor = "#a9a7ff";
+
     //CreateQAInst.innerHTML = `Now you need to create a Question and Answer for the story based on <p1>the word</p1> <p2>"${marked_word}"</p2> and its <p3>Meaning in Wiktionary</p3> and <p4>the ConceptNet Triple</p4> <p5>you choose</p5>.`
-    CreateQAInst.innerHTML = `<p>Now you need to create a Question and Answer for the story based on <p1>the word</p1> <p2>"${marked_word}"</p2>.</p> 
+    CreateQAInst.innerHTML = `<p><b>Your co-worker selected this triple below:</b></p>`;
+    CreateQAInst.innerHTML += `<table><tr id="tr_selected"><td width="30px"><input type="radio" id="radio_0" name="TripleSelected" value="tr_0"></td><td width="100px"><p1 style="background-color: #FFA5A5">${selected_triple[0]}</p1></td><td width="300px">${selected_triple[1]}</td><td width="300px">${selected_triple[2].replaceAll("_", " ")}</td></tr></table>`
+    CreateQAInst.innerHTML +=`<p>Now please create a Question and Answer based on <p1>the word</p1> <p2>"${marked_word}"</p2> with this <p8>triple</p8>.</p> 
     <p6>· You can use its <p3>meaning in Wiktionary</p3>.</p6><br>
     <p6>· Preferrably including <p2>"${marked_word}"</p2> and its <p5>relationship</p5> in the question that can be answered by the <p4>related concept</p4>.</p6><br>
     <p6>· The QA-pair should be beneficial for children's education.</p6>`
+    document.getElementById("tr_selected").style.backgroundColor = "#a9a7ff"
+
     document.getElementById("question").value = "";
     document.getElementById("answer").value = "";
     var qa_div = document.getElementById("QA");
@@ -251,13 +290,14 @@ function write_meaning(data, word) {
         return;
     }
     NoKnowledge.style.display = "none";
-    var t_string = '<table onclick="show_qa()">';
+    //var t_string = '<table onclick="show_qa()">';
+    var t_string = '<table>';
     t_string += '<tr><td class="table_content" width="30px"></td><td class="table_content" width="100px">Concept</td><td class="table_rel">Relationship</td><td class="table_relcon">Related concept</td></tr>';
     console.log(knowledge_list.length);
     for (let i = 0; i < knowledge_list.length; i++) {
         entity = knowledge_list[i];
         var text = "";
-        t_string += `<tr id="tr_${i}" onclick="get_row('tr_${i}')"><td width="30px"><input type="radio" id="radio_${i}" name="TripleSelected" value="tr_${i}"></td>`;
+        t_string += `<tr id="tr_${i}" onclick="get_row('tr_${i}')"><td width="30px"><i id="radio_${i}" class="fa-sharp fa-regular fa-square"></i></td>`;
         for (let j = 0; j < entity.length-1; j++) {
             if(j != 0){
                 t_string += '<td width="300px">' + entity[j].replaceAll("_", " ") + '</td>'
@@ -266,6 +306,16 @@ function write_meaning(data, word) {
                 t_string += '<td width="100px"><p1 style="background-color: #FFA5A5">' + entity[j] + '</p1></td>'
             }
             text += entity[j].toString() + ' ';
+            /*if(j == 2){
+                t_string += '<td width="300px">' + `related concept ${i+1}` + '</td>'
+            }
+            else if (j == 0){
+                t_string += '<td width="100px"><p1 style="background-color: #FFA5A5">' + `concept ${i+1}` + '</p1></td>'
+            }
+            else{
+                t_string += '<td width="100px">' + `relation ${i+1}` + '</td>'
+            }
+            text += entity[j].toString() + ' ';*/
         }
         t_string += '</tr>';
     }
@@ -275,21 +325,58 @@ function write_meaning(data, word) {
     ShowMeaning.innerHTML = meaning_str;
     AboveTriples.innerHTML = "<p id='TripleIns'>Matching triples of '" + word + "' in ConceptNet:</p>";
     ShowTriples.innerHTML = t_string;
-    //SelectTripleInst.innerHTML = `Please choose<br>a <p1>triple of "${marked_word}" in ConceptNet</p1><br>from the left box.`
-    SelectTripleInst.innerHTML = `<p>Please choose<br>a <p1>triple of <p3>"${marked_word}"</p3> in ConceptNet</p1> that:</p><br><p2>1. provides external knowledge outside the story</p2><br><p2>2. is beneficial for children's education.</p2>`
-    /*!!!!new QA display!!!*/
-    //document.getElementById("pair").style.display = "block";
-    //document.getElementById("submit").style.display = "block";
-    //show_qa();
+    SelectTripleInst.innerHTML = `<p>Please click on the boxes to<br>rank <b>TOP 3</b> <br><p1>triples of<p3>"${marked_word}"</p3> in ConceptNet</p1> that:</p><br><p2>1. provides external knowledge outside the story</p2><br><p2>2. is beneficial for children's education.</p2>`
+    SelectTripleInst.innerHTML += `<br><center><img src="../static/images/rank.gif" width="70%"></img></center>`
 }
 
 function get_row(row_id){
-    document.getElementById('radio' + row_id.substring(2)).checked = true;
-    document.getElementById(row_id).style.backgroundColor = "#FFE49D";
-    if (prev_marked_concept != ""){
-        document.getElementById(prev_marked_concept).style.backgroundColor = "white";
+    var r_index = ranked_triple_id.indexOf(Number(row_id.substring(3)));
+    if (r_index != -1){
+        ranked_triple_id.splice(r_index, 1);
+        document.getElementById(row_id).style.backgroundColor = "white";
+        document.getElementById('radio' + row_id.substring(2)).className = "fa-sharp fa-regular fa-square";
+        for(let i = 0; i < ranked_triple_id.length; i++){
+            document.getElementById('radio_' + ranked_triple_id[i].toString()).className = `fa-solid fa-${i+1}`;
+        }
+        rank_num --;
     }
-    prev_marked_concept = row_id;
+    else{
+        if(rank_num == 0){
+            document.getElementById('radio' + row_id.substring(2)).className = "fa-solid fa-1";
+            var dic = {concept: knowledge_list[Number(row_id.substring(3))][0], 
+                relation: knowledge_list[Number(row_id.substring(3))][1],
+                obj: knowledge_list[Number(row_id.substring(3))][2]};
+            console.log("dict:", dic);
+            ranked_triple.push(dic);
+            ranked_triple_id.push(Number(row_id.substring(3)));
+        }
+        else if(rank_num == 1){
+            document.getElementById('radio' + row_id.substring(2)).className = "fa-solid fa-2";
+            var dic = {concept: knowledge_list[Number(row_id.substring(3))][0], 
+                relation: knowledge_list[Number(row_id.substring(3))][1],
+                obj: knowledge_list[Number(row_id.substring(3))][2]};
+            ranked_triple.push(dic);
+            ranked_triple_id.push(Number(row_id.substring(3)));
+        }
+        else if(rank_num == 2){
+            document.getElementById('radio' + row_id.substring(2)).className = "fa-solid fa-3";
+            var dic = {concept: knowledge_list[Number(row_id.substring(3))][0], 
+                relation: knowledge_list[Number(row_id.substring(3))][1],
+                obj: knowledge_list[Number(row_id.substring(3))][2]};
+            ranked_triple.push(dic);
+            ranked_triple_id.push(Number(row_id.substring(3)));
+        }
+        rank_num++;
+        document.getElementById('radio' + row_id.substring(2)).checked = true;
+        console.log("rank num:", rank_num);
+        if (rank_num <= 3)
+        {
+            document.getElementById(row_id).style.backgroundColor = "#FFE49D";
+        }
+    }
+    if (rank_num == 3){
+        show_qa();
+    }
     marked_concept = row_id.slice(3);
 }
 
@@ -317,36 +404,64 @@ function sub() {
     if(q.length == 0 || a.length == 0){
         return;
     }
-    
     console.log(init_state, q, a, c);
     show_submit = 0;
+    if (sub_time == 0){
+        sub_time ++;
+        q2 = q;
+        a2 = a;
+        CreateQAInst.innerHTML = `<p><b>Your co-worker wrote the <p7>question</p7> below about this triple.</b></p>
+        <table><tr id="tr_selected"><td width="30px"><input type="radio" id="radio_0" name="TripleSelected" value="tr_0"></td><td width="100px"><p1 style="background-color: #FFA5A5">${selected_triple[0]}</p1></td><td width="300px">${selected_triple[1]}</td><td width="300px">${selected_triple[2].replaceAll("_", " ")}</td></tr></table>
+        <p>Now please answer the <b><p7>question</p7></b> based on <p1>the word</p1> <p2>"${marked_word}"</p2>.</p> 
+        <p6>· Preferrably including <p2>"${marked_word}"</p2> and <p4>related concept</p4> in your answer.</p6><br>
+        <p6>· You can use its <p3>meaning in Wiktionary</p3>.</p6><br>
+        <p6>· The QA-pair should be beneficial for children's education.</p6>`;
+        document.getElementById("tr_selected").style.backgroundColor = "#a9a7ff"
+        document.getElementById("question").value = annotated_words[selected_index].question;
+        document.getElementById("question").style.fontSize = "18px";
+        document.getElementById("question").style.color = "#7653d8";
+        document.getElementById("answer").value = "";
+        return;
+    }
     $.ajax({
         type: "GET",
         url: "/submit",
         data: {
-            "question": q,
-            "answer": a,
-            "concept": c,
+            "question1": q,
+            "answer1_for_question1": annotated_words[selected_index].answer,
+            "answer2_for_question1": a,
+            "question2": q2,
+            "answer_for_question2": a2,
+            "c1": ranked_triple[0].concept,
+            "c2": ranked_triple[1].concept,
+            "c3": ranked_triple[2].concept,
+            "r1": ranked_triple[0].relation,
+            "r2": ranked_triple[1].relation,
+            "r3": ranked_triple[2].relation,
+            "o1": ranked_triple[0].obj,
+            "o2": ranked_triple[1].obj,
+            "o3": ranked_triple[2].obj,
             "title": title,
             "section": id,
             'word_id': marked_id,
-            "username": username
+            "username": username,
         },
         dataType: "text",
         success: function () {
-            //alert("Submit Successful！");
             init_submit = 1;
             console.log("Done!");
-            label_num[story_num] += 1;
-            word_list[story_num] += "<p class='words'>" + marked_word + "</p>" //+ word_list[story_num];
-            //document.getElementById("label_words").innerHTML = "You have labeled "+ label_num + " words." + word_list;
-            //document.getElementById(marked_id).style.borderColor = "deepskyblue";
+            word_list[story_num] += "<p class='words'>" + marked_word + "</p>";
             let selected = document.getElementById("s" + marked_id);
             selected.style.background = "#a9a7ff";
             data[Number(marked_id)]['marked'] = 1;
+            label_num ++;
             clear_content();
             SelectWordInst.style.display = "block";
-            //folder_section();
+            console.log(label_num, annotated_words.length)
+            if(label_num == annotated_words.length){
+                SelectWordInst.innerHTML = "<p><b>You finished!</b> Please move on to a new paragraph.</p>"
+                SelectWordInst.innerHTML += "<br><br><br><p3>*This annotation task is to create QA pairs beneficial for children's education, with the help of external knowledge from ConceptNet.</p3>"
+            }
         }
     })
 }
@@ -360,11 +475,6 @@ function initial_state(){
 function clear_content(){
     document.getElementById("question").value = "";
     document.getElementById("answer").value = "";
-    //document.getElementById("question").setAttribute("placeholder", "Please enter your question.");
-    //document.getElementById("answer").setAttribute("placeholder", "Please enter your answer.");
-    /*if (switch_para == 0){
-        update_select(marked_id, "neg")
-    }*/
     AboveMeaning.innerHTML = "";
     ShowMeaning.innerHTML = "";
     AboveTriples.innerHTML = "";
@@ -376,9 +486,16 @@ function clear_content(){
     //SelectWordInst.style.display = "none";
     SelectTripleInst.style.display = "none";
     CreateQAInst.style.display = "none";
-    
+    prev_marked_concept = "";
     //marked_id = "";
     marked_concept = "";
+    selected_triple = [];
+    sub_time = 0;
+    q2 = "";
+    a2 = "";
+    rank_num = 0;
+    ranked_triple = [];
+    ranked_triple_id = [];
 }
 
 tippy('#question', {
