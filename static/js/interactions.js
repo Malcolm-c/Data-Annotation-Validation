@@ -259,6 +259,7 @@ function show_qa() {
           }`
     )
     qa_div.style.animation = "slide-down 0.3s ease-in-out"
+    document.getElementById("question").style.color = "black";
 }
 
 function write_meaning(data, word) {
@@ -326,7 +327,6 @@ function write_meaning(data, word) {
     AboveTriples.innerHTML = "<p id='TripleIns'>Matching triples of '" + word + "' in ConceptNet:</p>";
     ShowTriples.innerHTML = t_string;
     SelectTripleInst.innerHTML = `<p>Please click on the boxes to<br>rank <b>TOP 3</b> <br><p1>triples of<p3>"${marked_word}"</p3> in ConceptNet</p1> that:</p><br><p2>1. provides external knowledge outside the story</p2><br><p2>2. is beneficial for children's education.</p2>`
-    SelectTripleInst.innerHTML += `<br><center><img src="../static/images/rank.gif" width="70%"></img></center>`
 }
 
 function get_row(row_id){
