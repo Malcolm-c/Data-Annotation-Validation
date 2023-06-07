@@ -445,7 +445,7 @@ function sub() {
             "title": title,
             "section": id,
             'word_id': marked_id,
-            "username": username,
+            "username": username.toLowerCase(),
         },
         dataType: "text",
         success: function () {
