@@ -96,8 +96,10 @@ def get_paragraph():
         u_dict = load_json('./user_data/' + username + '.json')
         anntation_history = load_json('./preprocess/annotation_history.json')
         all_titles = load_json('./preprocess/all_titles.json')
-        if (u_dict['word_label_num'] > 0):
-            return "Haven't finished!"
+        if (story_title != "" and para_id != 0 and u_dict['word_label_num'] > 0):
+            #return "Haven't finished!"
+            print("Haven't finished!")
+            return json.dumps(u_dict['para_dict'])
         #pick a new paragraph
         new_para_res = pick_a_paragraph(u_dict['section_id'], username)
         if new_para_res == 0:
@@ -158,16 +160,19 @@ def submit_qa():
             os.makedirs('./QA validate/' + username)  
         if not os.path.isfile("./QA validate/" + username + '/' + title + ".csv"):
             f =  open("./QA validate/" + username + '/' + title + ".csv", 'w', encoding='utf8', newline='')
-            header = ['section_id', 'word_id', 'concept(sub)1', 'relation1', 'obj1', 'concept(sub)2', 'relation2', 'obj2', 'concept(sub)3', 'relation3', 'obj3', 'question1', 'answer1_for_question1', 'answer2_for_question1', 'question2', 'answer_for_question2']
+            header = ['section_id', 'word_id', 'concept(sub)1', 'relation1', 'obj1', 'concept(sub)2', 'relation2', 'obj2', 'concept(sub)3', 'relation3', 'obj3', 'concept_gt', 'relation_gt', 'obj_gt' 'question1', 'answer1_for_question1', 'answer2_for_question1', 'question2', 'answer_for_question2']
             writer = csv.writer(f)
             writer.writerow(header)
             f.close()
-        with open("./QA validate/" + username + '/' + title + ".csv", 'a', encoding='utf8', newline='') as f:
-            writer = csv.writer(f)
-            r = [section + 1, word_id, c1, r1, o1, c2, r2, o2, c3, r3, o3, question1, answer1_for_question1, answer2_for_question1, question2, answer_for_question2]
-            writer.writerow(r)
         all_titles = load_json('./preprocess/all_titles.json')
         section_id = str(all_titles.index(title)) + '_' + str(section + 1)
+        annotated_words = load_json('./preprocess/annalise-annotated_words.json')
+        words_info = annotated_words[section_id][0]
+        with open("./QA validate/" + username + '/' + title + ".csv", 'a', encoding='utf8', newline='') as f:
+            writer = csv.writer(f)
+            r = [section + 1, word_id, c1, r1, o1, c2, r2, o2, c3, r3, o3, words_info["concept"], words_info["relation"], words_info["obj"], question1, answer1_for_question1, answer2_for_question1, question2, answer_for_question2]
+            writer.writerow(r)
+        
         if (section_id not in u_dict['section_id']):
             u_dict['section_id'].append(section_id)
             u_dict['section_num'] += 1
