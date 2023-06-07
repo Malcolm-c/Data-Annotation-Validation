@@ -90,13 +90,13 @@ def get_paragraph():
         story_title = str(request.args.get('title'))
         story_id = str(request.args.get('s_id'))
         para_id = str(request.args.get('id'))
-        username = str(request.args.get('username'))
+        username = str(request.args.get('username')).lower()
         print(story_title, para_id)
         ###########!!!!!!!!##########
         u_dict = load_json('./user_data/' + username + '.json')
         anntation_history = load_json('./preprocess/annotation_history.json')
         all_titles = load_json('./preprocess/all_titles.json')
-        if (story_title != "" and para_id != 0 and u_dict['word_label_num'] > 0):
+        if (u_dict['word_label_num'] > 0):
             return "Haven't finished!"
         #pick a new paragraph
         new_para_res = pick_a_paragraph(u_dict['section_id'], username)
@@ -117,7 +117,7 @@ def load():
 def search_form():
     if request.method == 'GET':
         word = request.args.get('word')
-        username = str(request.args.get('username'))
+        username = str(request.args.get('username')).lower()
         u_dict = load_json('./user_data/' + username + '.json')
         triples = load_json('./preprocess/triples.json')
         u_dict['word'] = word.replace('"','').replace("'",'').replace('.','').replace(',','').lower()
@@ -149,7 +149,7 @@ def submit_qa():
         word_id = str(request.args.get('word_id'))
         title = str(request.args.get('title'))
         section = int(str(request.args.get('section')))
-        username = str(request.args.get('username'))
+        username = str(request.args.get('username')).lower()
         
         u_dict = load_json('./user_data/' + username + '.json')
         if not os.path.isdir('./QA validate'):

@@ -38,6 +38,7 @@ function ShowLogin(){
 
 function Login(){
     username = InputUsername.value;
+    username = username.toLowerCase();
     if(username == ""){
         alert("User name cannot be empty.");
     }
@@ -47,7 +48,7 @@ function Login(){
             type: "GET",
             url: "/init",
             data: {
-                'username': username
+                'username': username.toLowerCase()
             },
             dataType: "text",
             success: function (result) {
@@ -84,7 +85,7 @@ function get_paragraph(){
             "id": id,
             "title": title,
             "s_id": s_id,
-            "username": username
+            "username": username.toLowerCase()
         },
         dataType: "text",
         success: function (result) {
@@ -203,7 +204,7 @@ function add_concept(w) {
         url: "/search",
         data: {
             "word": JSON.stringify(w),
-            "username": username
+            "username": username.toLowerCase()
         },
         dataType: "text",
         success: function (result) {
